@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/johnllao/remoteproc/customrpc/hmac"
+	"github.com/johnllao/remoteproc/pkg/hmac"
 )
 
 const (
