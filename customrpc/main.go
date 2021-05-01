@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"net"
 	"net/rpc"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/johnllao/remoteproc/pkg/hmac"
+	"github.com/johnllao/remoteproc/pkg/security"
 )
 
 const (
@@ -73,54 +72,33 @@ func server(args []string) {
 	// listener to start accepting RPC calls
 	fmt.Printf("[server] service started \n")
 	for {
-		conn, err := l.Accept()
+		var conn net.Conn
+		conn, err = l.Accept()
 		if err != nil {
 			fmt.Printf("[server] %s \n", err.Error())
 			continue
 		}
 
-		// start the handshake
-		var tokenRequest string
-		var tokenResponse = "OK\n"
-
-		var r = bufio.NewReader(conn)
-		tokenRequest, err = r.ReadString('\n')
-		if err != nil {
-			fmt.Printf("[server] %s \n", err.Error())
-			continue
-		}
-		if strings.HasPrefix(tokenRequest, "TOKEN:") {
-			var token = tokenRequest[6 : len(tokenRequest)-1]
-
-			var validToken bool
-			if validToken, err = hmac.VerifyToken(key, token); !validToken || err != nil {
-				tokenResponse = "INVALID_TOKEN\n"
+		go func(conn net.Conn) {
+			// security handshake with client connection
+			var connErr = security.ServerHandshake(conn, conn, key)
+			if connErr != nil {
+				fmt.Printf("[server] %s \n", connErr.Error())
+				_ = conn.Close()
+				return
 			}
 
-		} else {
-			tokenResponse = "INVALID_TOKEN\n"
-			continue
-		}
+			// creates instance of the RPC servers
+			var rpcHandler = rpc.NewServer()
+			// registers the operations for the RPC
+			connErr = rpcHandler.Register(new(ServerOp))
+			if connErr != nil {
+				fmt.Printf("[server] %s \n", connErr.Error())
+				return
+			}
 
-		var w = bufio.NewWriter(conn)
-		_, err = w.WriteString(tokenResponse)
-		if err != nil {
-			fmt.Printf("[server] %s \n", err.Error())
-			continue
-		}
-		err = w.Flush()
-		if err != nil {
-			fmt.Printf("[server] %s \n", err.Error())
-			continue
-		}
-		// end of the handshake
-
-		// creates instance of the RPC servers
-		var rpcHandler = rpc.NewServer()
-		// registers the operations for the RPC
-		rpcHandler.Register(new(ServerOp))
-
-		go rpcHandler.ServeConn(conn)
+			rpcHandler.ServeConn(conn)
+		}(conn)
 	}
 }
 
@@ -142,36 +120,16 @@ func client(args []string) {
 		os.Exit(1)
 	}
 
-	// start the handshake
-	var tokenRequest = "TOKEN:" + token + "\n"
-	var w = bufio.NewWriter(conn)
-	_, err = w.WriteString(tokenRequest)
+	err = security.ClientHandshake(conn, conn, token)
 	if err != nil {
 		fmt.Printf("[client] %s \n", err.Error())
 		os.Exit(1)
 	}
-	err = w.Flush()
-	if err != nil {
-		fmt.Printf("[client] %s \n", err.Error())
-		os.Exit(1)
-	}
-	var tokenReply string
-	var r = bufio.NewReader(conn)
-	tokenReply, err = r.ReadString('\n')
-	if err != nil {
-		fmt.Printf("[client] %s \n", err.Error())
-		os.Exit(1)
-	}
-	if tokenReply[:2] != "OK" {
-		fmt.Printf("[client] not authorized \n")
-		os.Exit(1)
-	}
-	// end of the handshake
 
 	var c = rpc.NewClient(conn)
 
 	// Calls methos from the registered operations in the RPC server
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 5; i++ {
 		var start = time.Now()
 
 		var reply int
@@ -180,8 +138,7 @@ func client(args []string) {
 			fmt.Printf("[client] %s \n", err.Error())
 			os.Exit(1)
 		}
-		fmt.Printf("[client] ping: %d \n", reply)
-		fmt.Printf("[client] elapsed: %v \n", time.Since(start))
+		fmt.Printf("[client] ping: %d, elapsed: %v \n", reply, time.Since(start))
 	}
 }
 
