@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -16,15 +18,37 @@ import (
 )
 
 var (
-	dbpath string
-	key    string
-	port   int
+	dbpath  string
+	keypath string
+	port    int
+
+	key string
 )
 
 func main() {
 	var err error
-	log.Printf("loading database file. path: %s", dbpath)
 
+	flag.StringVar(&dbpath, "dbpath", "", "path of the database file")
+	flag.StringVar(&keypath, "keypath", "", "path of the security key")
+	flag.IntVar(&port, "port", 0, "service port number")
+	flag.Parse()
+
+	if dbpath == "" {
+		log.Fatalf("ERR: main() missing dbpath from the argument")
+	}
+	if keypath == "" {
+		log.Fatalf("ERR: main() missing key path from the argument")
+	}
+
+	log.Printf("reading the key file. path: %s", keypath)
+	var keyb []byte
+	keyb, err = os.ReadFile(keypath)
+	if err != nil {
+		log.Fatalf("ERR: main() %s", err.Error())
+	}
+	key = string(bytes.TrimSpace(keyb))
+
+	log.Printf("loading database file. path: %s", dbpath)
 	var db *bolt.DB
 	db, err = bolt.Open(dbpath, 0600, nil)
 	if err != nil {
@@ -41,6 +65,8 @@ func main() {
 		os.Exit(1)
 	}()
 
+	var custOp = ops.NewCustomerOps(db)
+
 	var l net.Listener
 	l, err = net.Listen("tcp", "localhost:"+strconv.Itoa(port))
 	if err != nil {
@@ -48,6 +74,7 @@ func main() {
 	}
 	defer l.Close()
 
+	log.Printf("service started. port: %d \n", port)
 	for {
 		var conn net.Conn
 		conn, err = l.Accept()
@@ -68,7 +95,7 @@ func main() {
 			// creates instance of the RPC servers
 			var rpcHandler = rpc.NewServer()
 			// registers the operations for the RPC
-			connErr = rpcHandler.Register(new(ops.CustomerOp))
+			connErr = rpcHandler.Register(custOp)
 			if connErr != nil {
 				fmt.Printf("WARN: main() %s \n", connErr.Error())
 				return

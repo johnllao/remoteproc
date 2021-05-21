@@ -43,8 +43,12 @@ func addCompanyToIndustryIndex(tx *bolt.Tx, industry, symbol, name string) error
 func addCompanyToSectorIndex(tx *bolt.Tx, sector, symbol, name string) error {
 	var err error
 	var b = tx.Bucket(BucketSector)
-	b.Put([]byte(sector), []byte(sector))
-	b, err = b.CreateBucketIfNotExists([]byte(sector))
+	err = b.Put([]byte(sector), []byte(sector))
+	if err != nil {
+		return err
+	}
+	var k = append(BucketSector, []byte(":"+sector)...)
+	b, err = b.CreateBucketIfNotExists(k)
 	if err != nil {
 		return err
 	}

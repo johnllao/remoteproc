@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 )
 
+type CompanyBytes []byte
+
 type Company struct {
 	Symbol        string
 	Name          string
@@ -20,4 +22,14 @@ type Company struct {
 
 func (c Company) ToJSON() ([]byte, error) {
 	return json.Marshal(c)
+}
+
+func (b CompanyBytes) ToCompany() (*Company, error) {
+	var err error
+	var c = new(Company)
+	err = json.Unmarshal(b, c)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }

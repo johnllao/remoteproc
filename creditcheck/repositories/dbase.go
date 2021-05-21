@@ -1,8 +1,9 @@
 package repositories
 
 import (
-	"github.com/boltdb/bolt"
+	"fmt"
 
+	"github.com/boltdb/bolt"
 	"github.com/johnllao/remoteproc/creditcheck/models"
 )
 
@@ -23,11 +24,45 @@ func init() {
 }
 
 func NewRepository(db *bolt.DB) *Repository {
+	var err error
+	var tx *bolt.Tx
+	tx, err = db.Begin(true)
+	if err != nil {
+		return nil
+	}
+	_, _ = tx.CreateBucketIfNotExists(BucketCompany)
+	_, _ = tx.CreateBucketIfNotExists(BucketIndustry)
+	_, _ = tx.CreateBucketIfNotExists(BucketSector)
+
+	defer tx.Commit()
+
 	var r = &Repository{
 		DB: db,
 	}
 
 	return r
+}
+
+func (r *Repository) Companies() ([]*models.Company, error) {
+	var err error
+	var companies []*models.Company
+	err = r.DB.View(func(tx *bolt.Tx) error {
+		var b = tx.Bucket(BucketCompany)
+		var c = b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			var co *models.Company
+			co, err = models.CompanyBytes(v).ToCompany()
+			if err != nil {
+				return err
+			}
+			companies = append(companies, co)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return companies, nil
 }
 
 func (r *Repository) SaveCompanies(companies []*models.Company) error {
@@ -38,19 +73,19 @@ func (r *Repository) SaveCompanies(companies []*models.Company) error {
 			// add the company record
 			err = addCompany(tx, c)
 			if err != nil {
-				return err
+				return fmt.Errorf("WARN: SaveCompanies() failed to save company. symbol: %s, err: %s", c.Symbol, err.Error())
 			}
 
 			// add the company to the industry index
 			err = addCompanyToIndustryIndex(tx, c.Industry, c.Symbol, c.Name)
 			if err != nil {
-				return err
+				return fmt.Errorf("WARN: SaveCompanies() failed to save company to industry index. symbol: %s, err: %s", c.Symbol, err.Error())
 			}
 
 			// add the company to the sector index
 			err = addCompanyToSectorIndex(tx, c.Sector, c.Symbol, c.Name)
 			if err != nil {
-				return err
+				return fmt.Errorf("WARN: SaveCompanies() failed to save company to sector index. symbol: %s, err: %s", c.Symbol, err.Error())
 			}
 		}
 
