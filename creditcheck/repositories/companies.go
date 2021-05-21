@@ -1,12 +1,29 @@
 package repositories
 
 import (
-	"github.com/boltdb/bolt"
+	"log"
 
+	"github.com/boltdb/bolt"
 	"github.com/johnllao/remoteproc/creditcheck/models"
 )
 
-func addCompany(tx *bolt.Tx, c *models.Company) error {
+func loadCompanies(tx *bolt.Tx, companies *[]models.Company) error {
+	var err error
+	var b = tx.Bucket(BucketCompany)
+	var c = b.Cursor()
+	for k, v := c.First(); k != nil; k, v = c.Next() {
+		var co *models.Company
+		co, err = models.CompanyBytes(v).ToCompany()
+		if err != nil {
+			return err
+		}
+		log.Printf("%v", co)
+		*companies = append(*companies, *co)
+	}
+	return nil
+}
+
+func addCompany(tx *bolt.Tx, c models.Company) error {
 	var err error
 	var b = tx.Bucket(BucketCompany)
 	var v []byte

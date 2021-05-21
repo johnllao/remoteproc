@@ -7,11 +7,11 @@ import (
 type NilArgs struct{}
 
 type CompaniesArg struct {
-	Companies []*models.Company
+	Companies []models.Company
 }
 
 type CompaniesReply struct {
-	Companies []*models.Company
+	Companies []models.Company
 	Status    int
 }
 

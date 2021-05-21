@@ -7,17 +7,17 @@ import (
 type CompanyBytes []byte
 
 type Company struct {
-	Symbol        string
-	Name          string
-	LastSale      string
-	NetChange     string
-	PercentChange string
-	MarketCap     string
-	Country       string
-	IPOYear       int
-	Volume        int
-	Sector        string
-	Industry      string
+	Symbol        string  `json:"symbol"`
+	Name          string  `json:"name"`
+	LastSale      string  `json:"lastsale"`
+	NetChange     float64 `json:"netchg"`
+	PercentChange string  `json:"pctchg"`
+	MarketCap     float64 `json:"mktcap"`
+	Country       string  `json:"country"`
+	IPOYear       int     `json:"ipoyr"`
+	Volume        int     `json:"vol"`
+	Sector        string  `json:"sec"`
+	Industry      string  `json:"ind"`
 }
 
 func (c Company) ToJSON() ([]byte, error) {

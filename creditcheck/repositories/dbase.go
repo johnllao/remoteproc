@@ -43,19 +43,13 @@ func NewRepository(db *bolt.DB) *Repository {
 	return r
 }
 
-func (r *Repository) Companies() ([]*models.Company, error) {
+func (r *Repository) Companies() ([]models.Company, error) {
 	var err error
-	var companies []*models.Company
+	var companies = make([]models.Company, 0)
 	err = r.DB.View(func(tx *bolt.Tx) error {
-		var b = tx.Bucket(BucketCompany)
-		var c = b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			var co *models.Company
-			co, err = models.CompanyBytes(v).ToCompany()
-			if err != nil {
-				return err
-			}
-			companies = append(companies, co)
+		err = loadCompanies(tx, &companies)
+		if err != nil {
+			return fmt.Errorf("WARN: Companies() failed to retrieve companies. err: %s", err.Error())
 		}
 		return nil
 	})
@@ -65,7 +59,7 @@ func (r *Repository) Companies() ([]*models.Company, error) {
 	return companies, nil
 }
 
-func (r *Repository) SaveCompanies(companies []*models.Company) error {
+func (r *Repository) SaveCompanies(companies []models.Company) error {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		var err error
 

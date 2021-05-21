@@ -38,7 +38,7 @@ func (o CustomerOp) UpsertCompanies(a *arguments.CompaniesArg, r *int) error {
 
 func (o CustomerOp) Companies(a *arguments.NilArgs, r *arguments.CompaniesReply) error {
 	var err error
-	var companies []*models.Company
+	var companies []models.Company
 	companies, err = o.repo.Companies()
 	if err != nil {
 		r.Status = -1

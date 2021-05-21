@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/johnllao/remoteproc/creditcheck/arguments"
-
 	"github.com/johnllao/remoteproc/pkg/hmac"
 	"github.com/johnllao/remoteproc/pkg/security"
 )
@@ -30,21 +29,21 @@ func gentoken(args []string) {
 	var err error
 
 	var key, name string
+	var expiry time.Duration
 
 	var flagset = flag.NewFlagSet("gentoken", flag.ContinueOnError)
 	flagset.StringVar(&key, "key", "", "secret key")
 	flagset.StringVar(&name, "name", "", "name of the token")
+	flagset.DurationVar(&expiry, "expiry", 5, "no of days to expire")
 	err = flagset.Parse(args)
 	if err != nil {
 		fmt.Printf("ERR: gentoken() %s \n", err.Error())
 		return
 	}
-	fmt.Printf("key:  %s \n", key)
-	fmt.Printf("name: %s \n", name)
 
 	var claim = &hmac.Claim{
 		Name:   name,
-		Expiry: time.Now().Add(24 * time.Hour).UnixNano(),
+		Expiry: time.Now().Add(expiry * 24 * time.Hour).UnixNano(),
 	}
 
 	var token string
@@ -68,7 +67,7 @@ func gentoken(args []string) {
 }
 
 func testmsg(args []string) {
-	const token = "xoqDKnCykXJtzGntx9GPwUD/HEr8Ka00sxgf378KTHwn/4EDAQEFQ2xhaW0B/4IAAQIBBE5hbWUBDAABBkV4cGlyeQEEAAAAFf+CAQZzYW1wbGUB+C0CuRCq7eCwAA=="
+	var token = args[0]
 
 	var err error
 
@@ -89,16 +88,13 @@ func testmsg(args []string) {
 		return
 	}
 
-	var a = &arguments.NilArgs{}
-	var reply = arguments.CompaniesReply{}
-
-	err = cli.Call("CustomerOp.Companies", a, &reply)
+	var aa arguments.NilArgs
+	var rr arguments.CompaniesReply
+	err = cli.Call("CustomerOp.Companies", &aa, &rr)
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
-	for _, c := range reply.Companies {
-		fmt.Println(c.Symbol)
-	}
+	fmt.Println(rr)
 	fmt.Println("bye!")
 }
