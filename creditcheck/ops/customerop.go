@@ -54,6 +54,19 @@ func (o CustomerOp) Companies(a *arguments.NilArgs, r *arguments.CompaniesReply)
 	return nil
 }
 
+func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, r *arguments.FincCompanyReply) error {
+	var err error
+	var co *models.Company
+	co, err = o.repo.FindCompany(a.Name)
+	if co == nil && err == nil {
+		r.Status = 0
+		return nil
+	}
+	r.Status = 1
+	r.Co = co
+	return nil
+}
+
 func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 	var err error
 

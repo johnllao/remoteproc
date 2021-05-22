@@ -59,6 +59,22 @@ func (r *Repository) Companies() ([]models.Company, error) {
 	return companies, nil
 }
 
+func (r *Repository) FindCompany(symbol string) (*models.Company, error) {
+	var err error
+	var co models.Company
+	err = r.DB.View(func(tx *bolt.Tx) error {
+		err = loadCompany(tx, symbol, &co)
+		if err == ErrNotFound {
+			return err
+		}
+		return nil
+	})
+	if err == ErrNotFound {
+		return nil, nil
+	}
+	return &co, err
+}
+
 func (r *Repository) SaveCompanies(companies []models.Company) error {
 	return r.DB.Update(func(tx *bolt.Tx) error {
 		var err error

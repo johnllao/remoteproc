@@ -3,14 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net"
-	"net/rpc"
 	"os"
 	"time"
 
 	"github.com/johnllao/remoteproc/creditcheck/arguments"
 	"github.com/johnllao/remoteproc/pkg/hmac"
-	"github.com/johnllao/remoteproc/pkg/security"
 )
 
 func main() {
@@ -18,8 +15,10 @@ func main() {
 
 	if cmd == "gentoken" {
 		gentoken(os.Args[2:])
-	} else if cmd == "testmsg" {
-		testmsg(os.Args[2:])
+	} else if cmd == "list_companies" {
+		listCompanies(os.Args[2:])
+	} else if cmd == "find_company" {
+		findCompany(os.Args[2:])
 	} else {
 		fmt.Printf("ERR: main() invalid command argument")
 	}
@@ -66,47 +65,67 @@ func gentoken(args []string) {
 	}
 }
 
-func testmsg(args []string) {
+func listCompanies(args []string) {
 	var token = args[0]
 
 	var err error
 
-	var conn net.Conn
-	conn, err = net.Dial("tcp", "localhost:6060")
+	var cli = &Client{
+		Addr:  "localhost:6060",
+		Token: token,
+	}
+
+	err = cli.Connect()
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
-	defer conn.Close()
-
-	var cli = rpc.NewClient(conn)
 	defer cli.Close()
 
-	err = security.ClientHandshake(conn, conn, token)
+	var a arguments.NilArgs
+	var r arguments.CompaniesReply
+	err = cli.Call("CustomerOp.Companies", &a, &r)
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
+	for _, co := range r.Companies {
+		fmt.Printf("%7s %s \n", co.Symbol, co.Name)
+	}
+	fmt.Println("bye!")
+}
 
-	var a arguments.LoadFileArg
-	var r int
+func findCompany(args []string) {
+	var symbol = args[0]
+	var token = args[1]
 
-	a.Path = "/Users/johnllao/Downloads/nasdaq_comapnies.csv"
-	err = cli.Call("CustomerOp.LoadFromFile", &a, &r)
+	var err error
+
+	var cli = &Client{
+		Addr:  "localhost:6060",
+		Token: token,
+	}
+
+	err = cli.Connect()
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
+	defer cli.Close()
 
-	var aa arguments.NilArgs
-	var rr arguments.CompaniesReply
-	err = cli.Call("CustomerOp.Companies", &aa, &rr)
+	var a arguments.FindCompanyArg
+	var r arguments.FincCompanyReply
+	a.Name = symbol
+	err = cli.Call("CustomerOp.FindCompany", &a, &r)
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
-	for _, co := range rr.Companies {
-		fmt.Println(co.Symbol + " " + co.Name)
+	if r.Status > 0 {
+		fmt.Printf("Symbol:   %s \n", r.Co.Symbol)
+		fmt.Printf("Name:     %s \n", r.Co.Name)
+		fmt.Printf("Industry: %s \n", r.Co.Industry)
+		fmt.Printf("Sector:   %s \n", r.Co.Sector)
 	}
 	fmt.Println("bye!")
 }

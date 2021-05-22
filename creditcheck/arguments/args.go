@@ -18,3 +18,12 @@ type CompaniesReply struct {
 type LoadFileArg struct {
 	Path string
 }
+
+type FindCompanyArg struct {
+	Name string
+}
+
+type FincCompanyReply struct {
+	Co     *models.Company
+	Status int
+}

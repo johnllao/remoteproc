@@ -1,8 +1,14 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/boltdb/bolt"
 	"github.com/johnllao/remoteproc/creditcheck/models"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
 )
 
 func loadCompanies(tx *bolt.Tx, companies *[]models.Company) error {
@@ -17,6 +23,22 @@ func loadCompanies(tx *bolt.Tx, companies *[]models.Company) error {
 		}
 		*companies = append(*companies, *co)
 	}
+	return nil
+}
+
+func loadCompany(tx *bolt.Tx, symbol string, co *models.Company) error {
+	var err error
+	var b = tx.Bucket(BucketCompany)
+	var d = b.Get([]byte(symbol))
+	if d == nil {
+		return ErrNotFound
+	}
+	var c *models.Company
+	c, err = models.CompanyBytes(d).ToCompany()
+	if err != nil {
+		return err
+	}
+	*co = *c
 	return nil
 }
 
