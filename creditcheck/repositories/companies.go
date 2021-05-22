@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"encoding/binary"
 	"errors"
+	"math"
 
 	"github.com/boltdb/bolt"
 	"github.com/johnllao/remoteproc/creditcheck/models"
@@ -51,6 +53,40 @@ func addCompany(tx *bolt.Tx, c models.Company) error {
 		return err
 	}
 	err = b.Put([]byte(c.Symbol), v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func loadCompanyLimitAntUtil(tx *bolt.Tx, symbol string, limit, util *float64) error {
+	var limb = tx.Bucket(BucketLimits).Get([]byte(symbol))
+	var utilb = tx.Bucket(BucketUtilizations).Get([]byte(symbol))
+
+	*limit = math.Float64frombits(binary.LittleEndian.Uint64(limb))
+	*util = math.Float64frombits(binary.LittleEndian.Uint64(utilb))
+
+	return nil
+}
+
+func updateCompanyLimit(tx *bolt.Tx, symbol string, limit float64) error {
+	var err error
+	var b = tx.Bucket(BucketLimits)
+	var l = make([]byte, binary.MaxVarintLen64)
+	binary.LittleEndian.PutUint64(l, math.Float64bits(limit))
+	err = b.Put([]byte(symbol), l)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func updateCompanyUtilization(tx *bolt.Tx, symbol string, util float64) error {
+	var err error
+	var b = tx.Bucket(BucketUtilizations)
+	var u = make([]byte, binary.MaxVarintLen64)
+	binary.LittleEndian.PutUint64(u, math.Float64bits(util))
+	err = b.Put([]byte(symbol), u)
 	if err != nil {
 		return err
 	}

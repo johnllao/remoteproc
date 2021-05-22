@@ -10,7 +10,9 @@ import (
 var (
 	BucketCompany,
 	BucketIndustry,
-	BucketSector []byte
+	BucketSector,
+	BucketLimits,
+	BucketUtilizations []byte
 )
 
 type Repository struct {
@@ -21,6 +23,8 @@ func init() {
 	BucketCompany = []byte("COMPANY")
 	BucketIndustry = []byte("INDUSTRY")
 	BucketSector = []byte("SECTOR")
+	BucketLimits = []byte("LIMITS")
+	BucketUtilizations = []byte("UTILIZATIONS")
 }
 
 func NewRepository(db *bolt.DB) *Repository {
@@ -33,6 +37,8 @@ func NewRepository(db *bolt.DB) *Repository {
 	_, _ = tx.CreateBucketIfNotExists(BucketCompany)
 	_, _ = tx.CreateBucketIfNotExists(BucketIndustry)
 	_, _ = tx.CreateBucketIfNotExists(BucketSector)
+	_, _ = tx.CreateBucketIfNotExists(BucketLimits)
+	_, _ = tx.CreateBucketIfNotExists(BucketUtilizations)
 
 	defer tx.Commit()
 
@@ -100,5 +106,25 @@ func (r *Repository) SaveCompanies(companies []models.Company) error {
 		}
 
 		return nil
+	})
+}
+
+func (r *Repository) CompanyLimitsAndUtilization(symbol string) (float64, float64, error) {
+	var lim, util float64
+	var err = r.DB.View(func(tx *bolt.Tx) error {
+		return loadCompanyLimitAntUtil(tx, symbol, &lim, &util)
+	})
+	return lim, util, err
+}
+
+func (r *Repository) UpdateCompanyLimit(symbol string, limit float64) error {
+	return r.DB.Update(func(tx *bolt.Tx) error {
+		return updateCompanyLimit(tx, symbol, limit)
+	})
+}
+
+func (r *Repository) UpdateCompanyUtilization(symbol string, util float64) error {
+	return r.DB.Update(func(tx *bolt.Tx) error {
+		return updateCompanyUtilization(tx, symbol, util)
 	})
 }

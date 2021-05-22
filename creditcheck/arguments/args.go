@@ -6,7 +6,7 @@ import (
 
 type NilArgs struct{}
 
-type CompaniesArg struct {
+type UpsertCompaniesArg struct {
 	Companies []models.Company
 }
 
@@ -26,4 +26,20 @@ type FindCompanyArg struct {
 type FincCompanyReply struct {
 	Co     *models.Company
 	Status int
+}
+
+type UpdateLimitArg struct {
+	Symbol string
+	Limit  float64
+}
+
+type UpdateUtilizationArg struct {
+	Symbol      string
+	Utilization float64
+}
+
+type LimitsAndUtilizationReply struct {
+	Limit       float64
+	Utilization float64
+	Status      int
 }

@@ -19,6 +19,8 @@ func main() {
 		listCompanies(os.Args[2:])
 	} else if cmd == "find_company" {
 		findCompany(os.Args[2:])
+	} else if cmd == "update_limits" {
+		updateLimits(os.Args[2:])
 	} else {
 		fmt.Printf("ERR: main() invalid command argument")
 	}
@@ -96,8 +98,8 @@ func listCompanies(args []string) {
 }
 
 func findCompany(args []string) {
-	var symbol = args[0]
-	var token = args[1]
+	var token = args[0]
+	var symbol = args[1]
 
 	var err error
 
@@ -127,5 +129,59 @@ func findCompany(args []string) {
 		fmt.Printf("Industry: %s \n", r.Co.Industry)
 		fmt.Printf("Sector:   %s \n", r.Co.Sector)
 	}
+
+	var limReply arguments.LimitsAndUtilizationReply
+	err = cli.Call("CustomerOp.FindCompany", &a, &limReply)
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+	if limReply.Status > 0 {
+		fmt.Printf("Limit:       %f \n", limReply.Limit)
+		fmt.Printf("Utilization: %f \n", limReply.Utilization)
+	}
 	fmt.Println("bye!")
+}
+
+func updateLimits(args []string) {
+	const defaultLimit = 2000000
+	const defaultUtilization = 20000
+
+	var token = args[0]
+	var symbol = args[1]
+
+	var err error
+
+	var cli = &Client{
+		Addr:  "localhost:6060",
+		Token: token,
+	}
+
+	err = cli.Connect()
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+	defer cli.Close()
+
+	var limArg arguments.UpdateLimitArg
+	var utilArg arguments.UpdateUtilizationArg
+	var r int
+
+	limArg.Symbol = symbol
+	limArg.Limit = defaultLimit
+	err = cli.Call("CustomerOp.UpdateLimit", &limArg, &r)
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+
+	utilArg.Symbol = symbol
+	utilArg.Utilization = defaultUtilization
+	err = cli.Call("CustomerOp.UpdateUtilization", &utilArg, &r)
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+
 }

@@ -29,7 +29,7 @@ func (o *CustomerOp) Ping(args *arguments.NilArgs, reply *int) error {
 	return nil
 }
 
-func (o CustomerOp) UpsertCompanies(a *arguments.CompaniesArg, r *int) error {
+func (o CustomerOp) UpsertCompanies(a *arguments.UpsertCompaniesArg, r *int) error {
 	var err = o.repo.SaveCompanies(a.Companies)
 	if err != nil {
 		*r = -1
@@ -121,5 +121,41 @@ func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 		*r = -1
 		return err
 	}
+	return nil
+}
+
+func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.FindCompanyArg, r *arguments.LimitsAndUtilizationReply) error {
+	var err error
+	var lim, util float64
+	lim, util, err = o.repo.CompanyLimitsAndUtilization(a.Name)
+	if err != nil {
+		r.Limit = 0
+		r.Utilization = 0
+		r.Status = -1
+		return err
+	}
+	r.Limit = lim
+	r.Utilization = util
+	r.Status = -1
+	return nil
+}
+
+func (o CustomerOp) UpdateLimit(a *arguments.UpdateLimitArg, r *int) error {
+	var err = o.repo.UpdateCompanyLimit(a.Symbol, a.Limit)
+	if err != nil {
+		*r = -1
+		return err
+	}
+	*r = 1
+	return nil
+}
+
+func (o CustomerOp) UpdateUtilization(a *arguments.UpdateUtilizationArg, r *int) error {
+	var err = o.repo.UpdateCompanyLimit(a.Symbol, a.Utilization)
+	if err != nil {
+		*r = -1
+		return err
+	}
+	*r = 1
 	return nil
 }
