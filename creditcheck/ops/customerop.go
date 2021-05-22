@@ -136,7 +136,7 @@ func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.FindCompanyArg, r *a
 	}
 	r.Limit = lim
 	r.Utilization = util
-	r.Status = -1
+	r.Status = 1
 	return nil
 }
 
@@ -151,7 +151,7 @@ func (o CustomerOp) UpdateLimit(a *arguments.UpdateLimitArg, r *int) error {
 }
 
 func (o CustomerOp) UpdateUtilization(a *arguments.UpdateUtilizationArg, r *int) error {
-	var err = o.repo.UpdateCompanyLimit(a.Symbol, a.Utilization)
+	var err = o.repo.UpdateCompanyUtilization(a.Symbol, a.Utilization)
 	if err != nil {
 		*r = -1
 		return err

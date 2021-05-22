@@ -63,9 +63,14 @@ func loadCompanyLimitAntUtil(tx *bolt.Tx, symbol string, limit, util *float64) e
 	var limb = tx.Bucket(BucketLimits).Get([]byte(symbol))
 	var utilb = tx.Bucket(BucketUtilizations).Get([]byte(symbol))
 
-	*limit = math.Float64frombits(binary.LittleEndian.Uint64(limb))
-	*util = math.Float64frombits(binary.LittleEndian.Uint64(utilb))
-
+	*limit = 0
+	if limb != nil {
+		*limit = math.Float64frombits(binary.LittleEndian.Uint64(limb))
+	}
+	*util = 0
+	if utilb != nil {
+		*util = math.Float64frombits(binary.LittleEndian.Uint64(utilb))
+	}
 	return nil
 }
 

@@ -131,7 +131,7 @@ func findCompany(args []string) {
 	}
 
 	var limReply arguments.LimitsAndUtilizationReply
-	err = cli.Call("CustomerOp.FindCompany", &a, &limReply)
+	err = cli.Call("CustomerOp.CompanyLimitAndUtilization", &a, &limReply)
 	if err != nil {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
