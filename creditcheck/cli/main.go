@@ -88,6 +88,16 @@ func testmsg(args []string) {
 		return
 	}
 
+	var a arguments.LoadFileArg
+	var r int
+
+	a.Path = "/Users/johnllao/Downloads/nasdaq_comapnies.csv"
+	err = cli.Call("CustomerOp.LoadFromFile", &a, &r)
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+
 	var aa arguments.NilArgs
 	var rr arguments.CompaniesReply
 	err = cli.Call("CustomerOp.Companies", &aa, &rr)
@@ -95,6 +105,8 @@ func testmsg(args []string) {
 		fmt.Printf("ERR: testmsg() %s \n", err.Error())
 		return
 	}
-	fmt.Println(rr)
+	for _, co := range rr.Companies {
+		fmt.Println(co.Symbol + " " + co.Name)
+	}
 	fmt.Println("bye!")
 }

@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"log"
-
 	"github.com/boltdb/bolt"
 	"github.com/johnllao/remoteproc/creditcheck/models"
 )
@@ -17,7 +15,6 @@ func loadCompanies(tx *bolt.Tx, companies *[]models.Company) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("%v", co)
 		*companies = append(*companies, *co)
 	}
 	return nil
@@ -40,6 +37,14 @@ func addCompany(tx *bolt.Tx, c models.Company) error {
 
 func addCompanyToIndustryIndex(tx *bolt.Tx, industry, symbol, name string) error {
 	var err error
+
+	if industry == "" {
+		return nil
+	}
+	if symbol == "" {
+		return nil
+	}
+
 	var b = tx.Bucket(BucketIndustry)
 	err = b.Put([]byte(industry), []byte(industry))
 	if err != nil {
@@ -59,6 +64,14 @@ func addCompanyToIndustryIndex(tx *bolt.Tx, industry, symbol, name string) error
 
 func addCompanyToSectorIndex(tx *bolt.Tx, sector, symbol, name string) error {
 	var err error
+
+	if sector == "" {
+		return nil
+	}
+	if symbol == "" {
+		return nil
+	}
+
 	var b = tx.Bucket(BucketSector)
 	err = b.Put([]byte(sector), []byte(sector))
 	if err != nil {
