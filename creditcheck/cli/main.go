@@ -21,6 +21,8 @@ func main() {
 		findCompany(os.Args[2:])
 	} else if cmd == "update_limits" {
 		updateLimits(os.Args[2:])
+	} else if cmd == "load_file" {
+		loadFromFile(os.Args[2:])
 	} else {
 		fmt.Printf("ERR: main() invalid command argument")
 	}
@@ -79,7 +81,7 @@ func listCompanies(args []string) {
 
 	err = cli.Connect()
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: listCompanies() %s \n", err.Error())
 		return
 	}
 	defer cli.Close()
@@ -88,7 +90,7 @@ func listCompanies(args []string) {
 	var r arguments.CompaniesReply
 	err = cli.Call("CustomerOp.Companies", &a, &r)
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: listCompanies() %s \n", err.Error())
 		return
 	}
 	for _, co := range r.Companies {
@@ -110,17 +112,17 @@ func findCompany(args []string) {
 
 	err = cli.Connect()
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: findCompany() %s \n", err.Error())
 		return
 	}
 	defer cli.Close()
 
 	var a arguments.FindCompanyArg
-	var r arguments.FincCompanyReply
+	var r arguments.FindCompanyReply
 	a.Name = symbol
 	err = cli.Call("CustomerOp.FindCompany", &a, &r)
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: findCompany() %s \n", err.Error())
 		return
 	}
 	if r.Status > 0 {
@@ -133,7 +135,7 @@ func findCompany(args []string) {
 	var limReply arguments.LimitsAndUtilizationReply
 	err = cli.Call("CustomerOp.CompanyLimitAndUtilization", &a, &limReply)
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: findCompany() %s \n", err.Error())
 		return
 	}
 	if limReply.Status > 0 {
@@ -159,7 +161,7 @@ func updateLimits(args []string) {
 
 	err = cli.Connect()
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: updateLimits() %s \n", err.Error())
 		return
 	}
 	defer cli.Close()
@@ -172,7 +174,7 @@ func updateLimits(args []string) {
 	limArg.Limit = defaultLimit
 	err = cli.Call("CustomerOp.UpdateLimit", &limArg, &r)
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: updateLimits() %s \n", err.Error())
 		return
 	}
 
@@ -180,8 +182,36 @@ func updateLimits(args []string) {
 	utilArg.Utilization = defaultUtilization
 	err = cli.Call("CustomerOp.UpdateUtilization", &utilArg, &r)
 	if err != nil {
-		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		fmt.Printf("ERR: updateLimits() %s \n", err.Error())
 		return
 	}
 
+}
+
+func loadFromFile(args []string) {
+	var err error
+
+	var token = args[0]
+
+	var cli = &Client{
+		Addr:  "localhost:6060",
+		Token: token,
+	}
+
+	err = cli.Connect()
+	if err != nil {
+		fmt.Printf("ERR: testmsg() %s \n", err.Error())
+		return
+	}
+	defer cli.Close()
+
+	var a arguments.LoadFileArg
+	a.Path = "./nasdaq_comapnies.csv"
+
+	var r int
+	err = cli.Call("CustomerOp.LoadFromFile", &a, &r)
+	if err != nil {
+		fmt.Printf("ERR: loadFromFile() %s \n", err.Error())
+		return
+	}
 }

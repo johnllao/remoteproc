@@ -128,3 +128,23 @@ func (r *Repository) UpdateCompanyUtilization(symbol string, util float64) error
 		return updateCompanyUtilization(tx, symbol, util)
 	})
 }
+
+func (r *Repository) BookDeal(d models.Deal) error {
+	var err error
+	return r.DB.Update(func(tx *bolt.Tx) error {
+		var lim, util float64
+		err = loadCompanyLimitAntUtil(tx, d.Symbol, &lim, &util)
+		if err != nil {
+			return err
+		}
+		var exp = d.Amount + util
+		if exp > lim {
+			return fmt.Errorf("limit breached. symbol: %s, limit: %f, current_util: %f, amt: %f", d.Symbol, lim, util, d.Amount)
+		}
+		err = updateCompanyUtilization(tx, d.Symbol, exp)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}

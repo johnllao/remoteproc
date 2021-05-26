@@ -28,9 +28,9 @@ var (
 func main() {
 	var err error
 
-	flag.StringVar(&dbpath, "dbpath", "", "path of the database file")
-	flag.StringVar(&keypath, "keypath", "", "path of the security key")
-	flag.IntVar(&port, "port", 0, "service port number")
+	flag.StringVar(&dbpath, "dbpath", "./cchk.db", "path of the database file")
+	flag.StringVar(&keypath, "keypath", "./cchk.key", "path of the security key")
+	flag.IntVar(&port, "port", 6060, "service port number")
 	flag.Parse()
 
 	if dbpath == "" {

@@ -54,7 +54,7 @@ func (o CustomerOp) Companies(a *arguments.NilArgs, r *arguments.CompaniesReply)
 	return nil
 }
 
-func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, r *arguments.FincCompanyReply) error {
+func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, r *arguments.FindCompanyReply) error {
 	var err error
 	var co *models.Company
 	co, err = o.repo.FindCompany(a.Name)
@@ -63,7 +63,7 @@ func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, r *arguments.FincCo
 		return nil
 	}
 	r.Status = 1
-	r.Co = co
+	r.Co = *co
 	return nil
 }
 
@@ -95,21 +95,21 @@ func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 		co.Name = record[1]
 		co.LastSale = record[2]
 		co.NetChange = 0
-		if netchg, err := strconv.ParseFloat(record[3], 64); err != nil {
+		if netchg, err := strconv.ParseFloat(record[3], 64); err == nil {
 			co.NetChange = netchg
 		}
 		co.PercentChange = record[4]
 		co.MarketCap = 0
-		if mktCap, err := strconv.ParseFloat(record[5], 64); err != nil {
+		if mktCap, err := strconv.ParseFloat(record[5], 64); err == nil {
 			co.MarketCap = mktCap
 		}
 		co.Country = record[6]
 		co.IPOYear = 0
-		if ipoyr, err := strconv.ParseInt(record[7], 10, 32); err != nil {
+		if ipoyr, err := strconv.ParseInt(record[7], 10, 32); err == nil {
 			co.IPOYear = int(ipoyr)
 		}
 		co.Volume = 0
-		if vol, err := strconv.ParseInt(record[8], 10, 32); err != nil {
+		if vol, err := strconv.ParseInt(record[8], 10, 32); err == nil {
 			co.Volume = int(vol)
 		}
 		co.Sector = record[9]
@@ -152,6 +152,16 @@ func (o CustomerOp) UpdateLimit(a *arguments.UpdateLimitArg, r *int) error {
 
 func (o CustomerOp) UpdateUtilization(a *arguments.UpdateUtilizationArg, r *int) error {
 	var err = o.repo.UpdateCompanyUtilization(a.Symbol, a.Utilization)
+	if err != nil {
+		*r = -1
+		return err
+	}
+	*r = 1
+	return nil
+}
+
+func (o CustomerOp) BookDeal(a *arguments.BookDealArg, r *int) error {
+	var err = o.repo.BookDeal(a.Deal)
 	if err != nil {
 		*r = -1
 		return err

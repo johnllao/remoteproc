@@ -23,8 +23,8 @@ type FindCompanyArg struct {
 	Name string
 }
 
-type FincCompanyReply struct {
-	Co     *models.Company
+type FindCompanyReply struct {
+	Co     models.Company
 	Status int
 }
 
@@ -42,4 +42,8 @@ type LimitsAndUtilizationReply struct {
 	Limit       float64
 	Utilization float64
 	Status      int
+}
+
+type BookDealArg struct {
+	Deal models.Deal
 }
