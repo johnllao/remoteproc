@@ -133,8 +133,10 @@ func findCompany(args []string) {
 		fmt.Printf("Sector:   %s \n", r.Co.Sector)
 	}
 
+	var aa arguments.LimitsAndUtilizationArg
+	aa.Name = symbol
 	var limReply arguments.LimitsAndUtilizationReply
-	err = cli.Call("CustomerOp.CompanyLimitAndUtilization", &a, &limReply)
+	err = cli.Call("CustomerOp.CompanyLimitAndUtilization", &aa, &limReply)
 	if err != nil {
 		fmt.Printf("ERR: findCompany() %s \n", err.Error())
 		return

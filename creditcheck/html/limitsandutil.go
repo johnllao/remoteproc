@@ -38,7 +38,7 @@ func (h *LimitsAndUtilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		h.limsErrTempl.Execute(w, nil)
 		return
 	}
-	var args arguments.FindCompanyArg
+	var args arguments.LimitsAndUtilizationArg
 	args.Name = symbol
 
 	var reply arguments.LimitsAndUtilizationReply

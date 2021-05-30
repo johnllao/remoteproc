@@ -37,6 +37,9 @@ type UpdateUtilizationArg struct {
 	Symbol      string
 	Utilization float64
 }
+type LimitsAndUtilizationArg struct {
+	Name string
+}
 
 type LimitsAndUtilizationReply struct {
 	Limit       float64

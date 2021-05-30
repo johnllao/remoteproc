@@ -124,7 +124,7 @@ func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 	return nil
 }
 
-func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.FindCompanyArg, r *arguments.LimitsAndUtilizationReply) error {
+func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.LimitsAndUtilizationArg, r *arguments.LimitsAndUtilizationReply) error {
 	var err error
 	var lim, util float64
 	lim, util, err = o.repo.CompanyLimitsAndUtilization(a.Name)
