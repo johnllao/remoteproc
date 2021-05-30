@@ -5,15 +5,16 @@ import (
 	"net/http"
 
 	"github.com/johnllao/remoteproc/creditcheck/arguments"
+	"github.com/johnllao/remoteproc/pkg/client"
 )
 
 type CompanyHandler struct {
-	cli      *Client
+	cli      *client.Client
 	coTempl  *template.Template
 	errTempl *template.Template
 }
 
-func NewCompanyHandler(cli *Client) *CompanyHandler {
+func NewCompanyHandler(cli *client.Client) *CompanyHandler {
 	var t, _ = template.New("company").Parse(coTempl)
 	var errt, _ = template.New("company_error").Parse(coErrTempl)
 	return &CompanyHandler{

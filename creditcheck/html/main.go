@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/johnllao/remoteproc/pkg/client"
 )
 
 const (
@@ -14,7 +16,7 @@ type RootHandler struct {
 	csspath string
 	jqpath  string
 
-	cli *Client
+	cli *client.Client
 
 	router http.Handler
 
@@ -49,7 +51,7 @@ func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	var err error
-	var cli = &Client{
+	var cli = &client.Client{
 		Addr:  "localhost:6060",
 		Token: token,
 	}

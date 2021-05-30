@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/johnllao/remoteproc/creditcheck/arguments"
+	"github.com/johnllao/remoteproc/pkg/client"
 )
 
 type CoLimitsAndUtil struct {
@@ -15,12 +16,12 @@ type CoLimitsAndUtil struct {
 }
 
 type LimitsAndUtilHandler struct {
-	cli          *Client
+	cli          *client.Client
 	limsTempl    *template.Template
 	limsErrTempl *template.Template
 }
 
-func NewLimitsAndUtilHandler(cli *Client) *LimitsAndUtilHandler {
+func NewLimitsAndUtilHandler(cli *client.Client) *LimitsAndUtilHandler {
 	var t, _ = template.New("limits").Parse(limsTempl)
 	var errt, _ = template.New("limits_error").Parse(limsErrTempl)
 	return &LimitsAndUtilHandler{

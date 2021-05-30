@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/johnllao/remoteproc/creditcheck/arguments"
+	"github.com/johnllao/remoteproc/pkg/client"
 	"github.com/johnllao/remoteproc/pkg/hmac"
 )
 
@@ -74,7 +75,7 @@ func listCompanies(args []string) {
 
 	var err error
 
-	var cli = &Client{
+	var cli = &client.Client{
 		Addr:  "localhost:6060",
 		Token: token,
 	}
@@ -105,7 +106,7 @@ func findCompany(args []string) {
 
 	var err error
 
-	var cli = &Client{
+	var cli = &client.Client{
 		Addr:  "localhost:6060",
 		Token: token,
 	}
@@ -154,7 +155,7 @@ func updateLimits(args []string) {
 
 	var err error
 
-	var cli = &Client{
+	var cli = &client.Client{
 		Addr:  "localhost:6060",
 		Token: token,
 	}
@@ -193,7 +194,7 @@ func loadFromFile(args []string) {
 
 	var token = args[0]
 
-	var cli = &Client{
+	var cli = &client.Client{
 		Addr:  "localhost:6060",
 		Token: token,
 	}
