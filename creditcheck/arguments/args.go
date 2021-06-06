@@ -6,13 +6,19 @@ import (
 
 type NilArgs struct{}
 
+type Reply struct {
+	Status       int
+	ErrorMessage string
+}
+
 type UpsertCompaniesArg struct {
 	Companies []models.Company
 }
 
 type CompaniesReply struct {
-	Companies []models.Company
-	Status    int
+	Companies    []models.Company
+	Status       int
+	ErrorMessage string
 }
 
 type LoadFileArg struct {
@@ -24,8 +30,9 @@ type FindCompanyArg struct {
 }
 
 type FindCompanyReply struct {
-	Co     models.Company
-	Status int
+	Co           models.Company
+	Status       int
+	ErrorMessage string
 }
 
 type UpdateLimitArg struct {
@@ -42,9 +49,10 @@ type LimitsAndUtilizationArg struct {
 }
 
 type LimitsAndUtilizationReply struct {
-	Limit       float64
-	Utilization float64
-	Status      int
+	Limit        float64
+	Utilization  float64
+	Status       int
+	ErrorMessage string
 }
 
 type BookDealArg struct {

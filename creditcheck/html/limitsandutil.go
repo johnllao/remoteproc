@@ -35,7 +35,7 @@ func (h *LimitsAndUtilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	r.ParseForm()
 	var symbol = r.PostForm.Get("n")
 	if symbol == "" {
-		h.limsErrTempl.Execute(w, nil)
+		h.limsErrTempl.Execute(w, "symbol is missing from the parameter or arument")
 		return
 	}
 	var args arguments.LimitsAndUtilizationArg
@@ -44,7 +44,7 @@ func (h *LimitsAndUtilHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	var reply arguments.LimitsAndUtilizationReply
 	var err = h.cli.Call("CustomerOp.CompanyLimitAndUtilization", &args, &reply)
 	if err != nil {
-		h.limsErrTempl.Execute(w, nil)
+		h.limsErrTempl.Execute(w, reply.ErrorMessage)
 		return
 	}
 
@@ -71,5 +71,5 @@ var limsTempl = `
 
 var limsErrTempl = `
 <div class="row">
-	Error retrieving the company limits
+	Error retrieving the company limits. {{ . }}
 </div>`

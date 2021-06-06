@@ -171,7 +171,7 @@ func updateLimits(args []string) {
 
 	var limArg arguments.UpdateLimitArg
 	var utilArg arguments.UpdateUtilizationArg
-	var r int
+	var r arguments.Reply
 
 	limArg.Symbol = symbol
 	limArg.Limit = defaultLimit
@@ -211,7 +211,7 @@ func loadFromFile(args []string) {
 	var a arguments.LoadFileArg
 	a.Path = "./nasdaq_comapnies.csv"
 
-	var r int
+	var r arguments.Reply
 	err = cli.Call("CustomerOp.LoadFromFile", &a, &r)
 	if err != nil {
 		fmt.Printf("ERR: loadFromFile() %s \n", err.Error())

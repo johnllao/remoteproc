@@ -3,7 +3,6 @@ package ops
 import (
 	"encoding/csv"
 	"io"
-	"log"
 	"os"
 	"strconv"
 
@@ -24,58 +23,65 @@ func NewCustomerOps(db *bolt.DB) *CustomerOp {
 	}
 }
 
-func (o *CustomerOp) Ping(args *arguments.NilArgs, reply *int) error {
-	*reply = 1
+func (o *CustomerOp) Ping(args *arguments.NilArgs, reply *arguments.Reply) error {
+	reply.Status = 1
 	return nil
 }
 
-func (o CustomerOp) UpsertCompanies(a *arguments.UpsertCompaniesArg, r *int) error {
+func (o CustomerOp) UpsertCompanies(a *arguments.UpsertCompaniesArg, reply *arguments.Reply) error {
 	var err = o.repo.SaveCompanies(a.Companies)
 	if err != nil {
-		*r = -1
-		log.Printf("WARN: UpsertCompanies() %s", err.Error())
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	*r = 1
+	reply.Status = 1
 	return nil
 }
 
-func (o CustomerOp) Companies(a *arguments.NilArgs, r *arguments.CompaniesReply) error {
+func (o CustomerOp) Companies(a *arguments.NilArgs, reply *arguments.CompaniesReply) error {
 	var err error
 	var companies []models.Company
 	companies, err = o.repo.Companies()
 	if err != nil {
-		r.Status = -1
-		log.Printf("WARN: Companies() %s", err.Error())
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	r.Status = 1
-	r.Companies = companies
+	reply.Status = 1
+	reply.Companies = companies
 	return nil
 }
 
-func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, r *arguments.FindCompanyReply) error {
+func (o CustomerOp) FindCompany(a *arguments.FindCompanyArg, reply *arguments.FindCompanyReply) error {
 	var err error
 	var co *models.Company
 	co, err = o.repo.FindCompany(a.Name)
 	if co == nil && err == nil {
-		r.Status = 0
+		reply.Status = 0
+		reply.ErrorMessage = a.Name + " do not exist"
 		return nil
 	}
-	r.Status = 1
-	r.Co = *co
+	if err != nil {
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
+		return err
+	}
+	reply.Status = 1
+	reply.Co = *co
 	return nil
 }
 
-func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
+func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, reply *arguments.Reply) error {
 	var err error
 
-	*r = 1
+	reply.Status = 1
 
 	var filer *os.File
 	filer, err = os.Open(a.Path)
 	if err != nil {
-		*r = -1
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
 	var companies = make([]models.Company, 0)
@@ -87,7 +93,8 @@ func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 			break
 		}
 		if err != nil {
-			*r = -1
+			reply.Status = -1
+			reply.ErrorMessage = err.Error()
 			return err
 		}
 		var co models.Company
@@ -118,54 +125,59 @@ func (o CustomerOp) LoadFromFile(a *arguments.LoadFileArg, r *int) error {
 	}
 	err = o.repo.SaveCompanies(companies)
 	if err != nil {
-		*r = -1
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
 	return nil
 }
 
-func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.LimitsAndUtilizationArg, r *arguments.LimitsAndUtilizationReply) error {
+func (o CustomerOp) CompanyLimitAndUtilization(a *arguments.LimitsAndUtilizationArg, reply *arguments.LimitsAndUtilizationReply) error {
 	var err error
 	var lim, util float64
 	lim, util, err = o.repo.CompanyLimitsAndUtilization(a.Name)
 	if err != nil {
-		r.Limit = 0
-		r.Utilization = 0
-		r.Status = -1
+		reply.Limit = 0
+		reply.Utilization = 0
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	r.Limit = lim
-	r.Utilization = util
-	r.Status = 1
+	reply.Limit = lim
+	reply.Utilization = util
+	reply.Status = 1
 	return nil
 }
 
-func (o CustomerOp) UpdateLimit(a *arguments.UpdateLimitArg, r *int) error {
+func (o CustomerOp) UpdateLimit(a *arguments.UpdateLimitArg, reply *arguments.Reply) error {
 	var err = o.repo.UpdateCompanyLimit(a.Symbol, a.Limit)
 	if err != nil {
-		*r = -1
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	*r = 1
+	reply.Status = 1
 	return nil
 }
 
-func (o CustomerOp) UpdateUtilization(a *arguments.UpdateUtilizationArg, r *int) error {
+func (o CustomerOp) UpdateUtilization(a *arguments.UpdateUtilizationArg, reply *arguments.Reply) error {
 	var err = o.repo.UpdateCompanyUtilization(a.Symbol, a.Utilization)
 	if err != nil {
-		*r = -1
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	*r = 1
+	reply.Status = 1
 	return nil
 }
 
-func (o CustomerOp) BookDeal(a *arguments.BookDealArg, r *int) error {
+func (o CustomerOp) BookDeal(a *arguments.BookDealArg, reply *arguments.Reply) error {
 	var err = o.repo.BookDeal(a.Deal)
 	if err != nil {
-		*r = -1
+		reply.Status = -1
+		reply.ErrorMessage = err.Error()
 		return err
 	}
-	*r = 1
+	reply.Status = 1
 	return nil
 }

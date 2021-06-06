@@ -37,7 +37,7 @@ func (h *CompanyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var reply arguments.FindCompanyReply
 	var err = h.cli.Call("CustomerOp.FindCompany", &args, &reply)
 	if err != nil {
-		h.errTempl.Execute(w, nil)
+		h.errTempl.Execute(w, reply.ErrorMessage)
 		return
 	}
 	var co = reply.Co
@@ -71,5 +71,5 @@ var coTempl = `
 
 var coErrTempl = `
 <div class="row">
-	Error retrieving the company symbol
+	Error retrieving the company symbol. {{ . }}
 </div>`
